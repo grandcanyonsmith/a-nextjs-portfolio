@@ -9,35 +9,37 @@ export const metadata: Metadata = {
   description: 'Read my thoughts on software development, design, and more.',
 };
 
-export default async function BlogPage() {
-  const allViews = await getViewsCount();
+export default function BlogPage() {
+  const [allViews, setAllViews] = React.useState<number | null>(null);
+
+  React.useEffect(() => {
+    const fetchViewsCount = async () => {
+      const views = await getViewsCount();
+      setAllViews(views);
+    };
+
+    fetchViewsCount();
+  }, []);
 
   return (
     <section>
       <h1 className="font-bold text-2xl mb-8 tracking-tighter">read my blog</h1>
       {allBlogs
-        .sort((a, b) => {
-          if (new Date(a.publishedAt) > new Date(b.publishedAt)) {
-            return -1;
-          }
-          return 1;
-        })
+        .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
         .map((post) => (
-          <Link
-            key={post.slug}
-            className="flex flex-col space-y-1 mb-4"
-            href={`/blog/${post.slug}`}
-          >
-            <div className="w-full flex flex-col">
-              <p className="text-neutral-900 dark:text-neutral-100 tracking-tight">
-                {post.title}
-              </p>
-              <ViewCounter
-                allViews={allViews}
-                slug={post.slug}
-                trackView={false}
-              />
-            </div>
+          <Link key={post.slug} href={`/blog/${post.slug}`}>
+            <a className="flex flex-col space-y-1 mb-4">
+              <div className="w-full flex flex-col">
+                <p className="text-neutral-900 dark:text-neutral-100 tracking-tight">
+                  {post.title}
+                </p>
+                <ViewCounter
+                  allViews={allViews}
+                  slug={post.slug}
+                  trackView={false}
+                />
+              </div>
+            </a>
           </Link>
         ))}
     </section>
